@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rider Income & Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .nav-pills .nav-link.active { background-color: #0d6efd; }
+        .btn-expense { margin-right: 5px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container py-4">
+    <h2 class="text-center mb-4">🏍️ Rider Tracker</h2>
+
+    <ul class="nav nav-pills nav-fill mb-4 bg-white p-2 rounded-pill shadow-sm">
+        <li class="nav-item">
+            <button class="nav-link" :class="{active: currentTab === 'record'}" @click="currentTab = 'record'">บันทึกข้อมูล</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" :class="{active: currentTab === 'summary'}" @click="currentTab = 'summary'">สรุปผล & กราฟ</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" :class="{active: currentTab === 'settings'}" @click="currentTab = 'settings'">ตั้งค่า</button>
+        </li>
+    </ul>
+
+    <hr>
+
+    <div v-if="currentTab === 'record'">
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">📦 บันทึกรอบบิล</h5>
+                        <div class="mb-3">
+                            <label class="form-label">วันที่</label>
+                            <input type="date" class="form-control" v-model="billForm.date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">จำนวนรอบบิล</label>
+                            <input type="number" class="form-control" v-model.number="billForm.count" placeholder="0">
+                        </div>
+                        <button class="btn btn-primary w-100" @click="saveBill">บันทึกรอบบิล</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">💸 บันทึกรายจ่าย</h5>
+                        <div class="mb-3">
+                            <label class="form-label">วันที่</label>
+                            <input type="date" class="form-control" v-model="expenseForm.date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ประเภทรายจ่าย</label><br>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="expType" id="oil" value="ค่าน้ำมัน" v-model="expenseForm.type">
+                                <label class="btn btn-outline-secondary" for="oil">⛽ น้ำมัน</label>
+                                
+                                <input type="radio" class="btn-check" name="expType" id="food" value="ค่าอาหาร" v-model="expenseForm.type">
+                                <label class="btn btn-outline-secondary" for="food">🍱 อาหาร</label>
+                                
+                                <input type="radio" class="btn-check" name="expType" id="other" value="อื่นๆ" v-model="expenseForm.type">
+                                <label class="btn btn-outline-secondary" for="other">✨ อื่นๆ</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">จำนวนเงิน (บาท)</label>
+                            <input type="number" class="form-control" v-model.number="expenseForm.amount" placeholder="0.00">
+                        </div>
+                        <button class="btn btn-danger w-100" @click="saveExpense">บันทึกรายจ่าย</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="currentTab === 'settings'">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">⚙️ ตั้งค่าพื้นฐาน</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">ค่ารอบต่อบิล (บาท)</label>
+                        <input type="number" class="form-control" v-model.number="settings.pricePerBill">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">ภาษีหัก ณ ที่จ่าย (%)</label>
+                        <input type="number" class="form-control" v-model.number="settings.taxRate">
+                    </div>
+                </div>
+                <hr>
+                <h5 class="card-title">📅 ตั้งค่ารอบการจ่ายเงิน</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">จากวันที่</label>
+                        <input type="date" class="form-control" v-model="settings.periodStart">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ถึงวันที่</label>
+                        <input type="date" class="form-control" v-model="settings.periodEnd">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">วันที่จ่ายเงิน</label>
+                        <input type="date" class="form-control" v-model="settings.payDay">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="currentTab === 'summary'">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white p-3 mb-2">
+                    <small>รายได้ทั้งหมด (ก่อนภาษี)</small>
+                    <h3>฿{{ totalIncome.toFixed(2) }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-danger text-white p-3 mb-2">
+                    <small>รายจ่ายทั้งหมด</small>
+                    <h3>฿{{ totalExpense.toFixed(2) }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white p-3 mb-2">
+                    <small>รายได้สุทธิ (หลังหักภาษีและรายจ่าย)</small>
+                    <h3>฿{{ (totalNet - totalExpense).toFixed(2) }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <canvas id="myChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-white"><strong>📊 ตารางบันทึกค่ารอบ</strong></div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>วันที่</th>
+                            <th>จำนวนบิล</th>
+                            <th>เงินรวม</th>
+                            <th>ภาษี ({{settings.taxRate}}%)</th>
+                            <th>เงินสุทธิ</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in bills" :key="index">
+                            <td>{{ item.date }}</td>
+                            <td>{{ item.count }}</td>
+                            <td>{{ (item.count * settings.pricePerBill).toFixed(2) }}</td>
+                            <td>{{ (item.count * settings.pricePerBill * (settings.taxRate/100)).toFixed(2) }}</td>
+                            <td>{{ (item.count * settings.pricePerBill * (1 - settings.taxRate/100)).toFixed(2) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" @click="deleteItem('bills', index)">ลบ</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-white"><strong>📉 ตารางบันทึกรายจ่าย</strong></div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>วันที่</th>
+                            <th>ประเภท</th>
+                            <th>จำนวนเงิน</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, index) in expenses" :key="index">
+                            <td>{{ item.date }}</td>
+                            <td><span class="badge bg-secondary">{{ item.type }}</span></td>
+                            <td>{{ item.amount.toFixed(2) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" @click="deleteItem('expenses', index)">ลบ</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const { createApp } = Vue
+
+    createApp({
+        data() {
+            return {
+                currentTab: 'record',
+                settings: {
+                    pricePerBill: 40,
+                    taxRate: 3,
+                    periodStart: '',
+                    periodEnd: '',
+                    payDay: ''
+                },
+                billForm: { date: new Date().toISOString().substr(0, 10), count: null },
+                expenseForm: { date: new Date().toISOString().substr(0, 10), type: 'ค่าน้ำมัน', amount: null },
+                bills: [],
+                expenses: []
+            }
+        },
+        computed: {
+            totalIncome() {
+                return this.bills.reduce((sum, item) => sum + (item.count * this.settings.pricePerBill), 0);
+            },
+            totalNet() {
+                const taxMultiplier = (1 - (this.settings.taxRate / 100));
+                return this.bills.reduce((sum, item) => sum + (item.count * this.settings.pricePerBill * taxMultiplier), 0);
+            },
+            totalExpense() {
+                return this.expenses.reduce((sum, item) => sum + item.amount, 0);
+            }
+        },
+        methods: {
+            saveBill() {
+                if(!this.billForm.count) return alert('กรุณาระบุจำนวนรอบ');
+                this.bills.push({ ...this.billForm });
+                this.billForm.count = null;
+                alert('บันทึกรอบบิลสำเร็จ');
+            },
+            saveExpense() {
+                if(!this.expenseForm.amount) return alert('กรุณาระบุจำนวนเงิน');
+                this.expenses.push({ ...this.expenseForm });
+                this.expenseForm.amount = null;
+                alert('บันทึกรายจ่ายสำเร็จ');
+            },
+            deleteItem(type, index) {
+                if(confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) {
+                    this[type].splice(index, 1);
+                }
+            },
+            renderChart() {
+                const ctx = document.getElementById('myChart');
+                if(!ctx) return;
+                
+                // ล้างกราฟเก่าถ้ามี
+                if(window.incomeChart) window.incomeChart.destroy();
+
+                window.incomeChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['รายได้ (หลังภาษี)', 'รายจ่าย'],
+                        datasets: [{
+                            label: 'สรุปยอดเงิน (บาท)',
+                            data: [this.totalNet, this.totalExpense],
+                            backgroundColor: ['#0d6efd', '#dc3545']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+        },
+        watch: {
+            currentTab(newTab) {
+                if(newTab === 'summary') {
+                    setTimeout(() => this.renderChart(), 100);
+                }
+            }
+        },
+        mounted() {
+            // โหลดข้อมูลจาก LocalStorage (ถ้ามี)
+            const savedBills = localStorage.getItem('rider_bills');
+            const savedExps = localStorage.getItem('rider_exps');
+            if(savedBills) this.bills = JSON.parse(savedBills);
+            if(savedExps) this.expenses = JSON.parse(savedExps);
+        },
+        updated() {
+            // บันทึกข้อมูลลงเครื่องอัตโนมัติ
+            localStorage.setItem('rider_bills', JSON.stringify(this.bills));
+            localStorage.setItem('rider_exps', JSON.stringify(this.expenses));
+        }
+    }).mount('#app')
+</script>
+
+</body>
+</html>
