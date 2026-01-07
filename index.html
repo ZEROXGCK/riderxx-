@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rider Pro Tracker v4.2</title>
+    <title>Rider Pro Tracker v4.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,16 +15,8 @@
         body { font-family: 'Kanit', sans-serif; background: #f9fafb; color: #374151; }
         .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); }
         .tab-active { background: white; color: #2563eb; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        
-        /* Smooth Fade Animation */
-        .fade-enter-active, .fade-leave-active { transition: all 0.4s ease; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(8px); }
-
-        /* Toast Animation */
-        .toast-enter-active, .toast-leave-active { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(-15px); }
-
-        input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.5; }
+        .fade-enter-active, .fade-leave-active { transition: all 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(5px); }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -31,26 +24,26 @@
 <div id="app" class="max-w-xl mx-auto relative">
     
     <div class="fixed top-6 left-0 right-0 z-50 flex flex-col items-center pointer-events-none">
-        <transition-group name="toast">
+        <transition-group name="fade">
             <div v-for="note in notifications" :key="note.id" 
-                 :class="['px-5 py-2.5 rounded-2xl shadow-lg text-white text-sm font-medium mb-2 flex items-center gap-2 pointer-events-auto', 
+                 :class="['px-5 py-2 rounded-full shadow-lg text-white text-[12px] font-medium mb-2 flex items-center gap-2 pointer-events-auto transition-all', 
                           note.type === 'success' ? 'bg-emerald-500' : note.type === 'error' ? 'bg-rose-500' : 'bg-blue-500']">
                 <i :class="note.icon"></i> {{ note.text }}
             </div>
         </transition-group>
     </div>
 
-    <header class="flex justify-between items-center mb-8 px-2">
+    <header class="flex justify-between items-center mb-6 px-2">
         <div>
-            <h1 class="text-xl font-bold tracking-tight text-slate-800">Rider<span class="text-blue-600 font-extrabold">Log</span></h1>
-            <p class="text-[11px] text-slate-400 uppercase tracking-widest font-semibold">Financial Assistant</p>
+            <h1 class="text-xl font-bold tracking-tight">Rider<span class="text-blue-600 font-extrabold">Log</span></h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Payout tracking system</p>
         </div>
-        <button @click="currentTab = 'settings'" class="text-slate-400 hover:text-blue-500 transition-colors">
-            <i class="fa-solid fa-gear text-lg"></i>
+        <button @click="currentTab = 'settings'" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100">
+            <i class="fa-solid fa-gear"></i>
         </button>
     </header>
 
-    <nav class="flex p-1 bg-slate-100 rounded-2xl mb-8 border border-slate-200/50">
+    <nav class="flex p-1 bg-slate-100 rounded-2xl mb-6 border border-slate-200/50">
         <button v-for="(label, tab) in {record: 'บันทึก', summary: 'สรุปผล'}" 
                 @click="currentTab = tab"
                 :class="['flex-1 py-2 text-[13px] font-semibold rounded-xl transition-all active:scale-95', currentTab === tab ? 'tab-active' : 'text-slate-400']">
@@ -63,130 +56,128 @@
             <div :key="currentTab">
 
                 <section v-if="currentTab === 'record'" class="space-y-6">
-                    <div class="flex gap-2 p-1 bg-white/50 rounded-xl border border-slate-200/50">
-                        <button @click="subTab = 'bill'" :class="['flex-1 py-1.5 rounded-lg text-xs font-bold transition', subTab === 'bill' ? 'bg-slate-800 text-white' : 'text-slate-400']">ค่ารอบ</button>
-                        <button @click="subTab = 'expense'" :class="['flex-1 py-1.5 rounded-lg text-xs font-bold transition', subTab === 'expense' ? 'bg-slate-800 text-white' : 'text-slate-400']">รายจ่าย</button>
-                    </div>
+                    <div class="glass p-7 rounded-[2rem] shadow-sm border border-white">
+                        <div class="flex gap-2 p-1 bg-slate-100/50 rounded-xl mb-6">
+                            <button @click="subTab = 'bill'" :class="['flex-1 py-1.5 rounded-lg text-[11px] font-bold transition', subTab === 'bill' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400']">ค่ารอบ</button>
+                            <button @click="subTab = 'expense'" :class="['flex-1 py-1.5 rounded-lg text-[11px] font-bold transition', subTab === 'expense' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400']">รายจ่าย</button>
+                        </div>
 
-                    <div class="glass p-7 rounded-[2rem] shadow-sm">
-                        <h3 class="text-sm font-bold text-slate-600 mb-6 flex items-center gap-2">
-                            <i :class="[subTab === 'bill' ? 'fa-solid fa-plus-circle text-blue-500' : 'fa-solid fa-minus-circle text-rose-500']"></i>
-                            {{ subTab === 'bill' ? (isEditing ? 'แก้ไขรายการค่ารอบ' : 'เพิ่มรายการค่ารอบ') : 'บันทึกรายจ่ายใหม่' }}
-                        </h3>
-                        
                         <div v-if="subTab === 'bill'" class="space-y-4">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">วันที่</label>
-                                <input type="date" v-model="billForm.date" class="w-full p-3 rounded-xl bg-slate-50 border-0 outline-none focus:ring-1 ring-blue-100 transition-all text-sm">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">จำนวนบิล</label>
-                                <input type="number" v-model.number="billForm.count" placeholder="0" class="w-full p-3 rounded-xl bg-slate-50 border-0 outline-none text-lg font-semibold">
-                            </div>
-                            <button @click="saveBill" class="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md shadow-blue-100 active:scale-95 transition-transform">
-                                {{ isEditing ? 'อัปเดตข้อมูล' : 'ยืนยันการบันทึก' }}
+                            <input type="date" v-model="billForm.date" class="w-full p-3 bg-slate-50 rounded-xl border-0 text-sm outline-none">
+                            <input type="number" v-model.number="billForm.count" placeholder="จำนวนบิล" class="w-full p-3 bg-slate-50 rounded-xl border-0 text-lg font-bold outline-none">
+                            <button @click="saveBill" class="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold text-sm active:scale-95 transition-transform">
+                                {{ isEditing ? 'อัปเดตข้อมูล' : 'บันทึกค่ารอบ' }}
                             </button>
                             <button v-if="isEditing" @click="cancelEdit" class="w-full text-xs text-slate-400">ยกเลิก</button>
                         </div>
 
                         <div v-else class="space-y-4">
-                            <input type="date" v-model="expenseForm.date" class="w-full p-3 rounded-xl bg-slate-50 border-0 outline-none text-sm">
-                            <div class="grid grid-cols-3 gap-2">
-                                <button v-for="type in ['ค่าน้ำมัน', 'ค่าอาหาร', 'อื่นๆ']" @click="expenseForm.type = type"
-                                        :class="['py-2 text-[11px] font-bold rounded-lg border transition', expenseForm.type === type ? 'bg-rose-500 border-rose-500 text-white' : 'bg-white text-slate-400 border-slate-100']">
-                                    {{type}}
-                                </button>
-                            </div>
-                            <input type="number" v-model.number="expenseForm.amount" placeholder="จำนวนเงิน" class="w-full p-3 rounded-xl bg-slate-50 border-0 outline-none text-lg font-semibold">
-                            <button @click="saveExpense" class="w-full py-3.5 bg-rose-500 text-white rounded-xl font-bold text-sm shadow-md shadow-rose-100 active:scale-95 transition-transform">
-                                บันทึกรายจ่าย
-                            </button>
+                            <input type="date" v-model="expenseForm.date" class="w-full p-3 bg-slate-50 rounded-xl border-0 text-sm outline-none">
+                            <input type="number" v-model.number="expenseForm.amount" placeholder="จำนวนเงิน" class="w-full p-3 bg-slate-50 rounded-xl border-0 text-lg font-bold outline-none">
+                            <button @click="saveExpense" class="w-full py-3.5 bg-rose-500 text-white rounded-xl font-bold text-sm active:scale-95 transition-transform">บันทึกรายจ่าย</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase px-2 tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1"></i> ประมาณการเงินเข้า</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+                                <thead class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-3">รอบวันที่</th>
+                                        <th class="px-2 py-3 text-center">บิลรวม</th>
+                                        <th class="px-2 py-3 text-right">สุทธิ</th>
+                                        <th class="px-4 py-3 text-right">วันจ่าย</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-[11px] divide-y divide-slate-50">
+                                    <tr v-for="cycle in calculatedCycles" :key="cycle.pay" :class="{'bg-blue-50/30': cycle.totalBill > 0}">
+                                        <td class="px-4 py-3 text-slate-600">{{formatDateRange(cycle.start, cycle.end)}}</td>
+                                        <td class="px-2 py-3 text-center font-bold text-slate-700">{{cycle.totalBill}}</td>
+                                        <td class="px-2 py-3 text-right font-bold text-blue-600">฿{{cycle.totalAmount.toFixed(2)}}</td>
+                                        <td class="px-4 py-3 text-right font-bold text-emerald-500">{{cycle.pay}}</td>
+                                    </tr>
+                                    <tr v-if="calculatedCycles.length === 0">
+                                        <td colspan="4" class="px-4 py-8 text-center text-slate-300 italic">กรุณาตั้งค่ารอบการจ่ายเงิน</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
 
                 <section v-if="currentTab === 'summary'" class="space-y-5">
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">รายได้สุทธิ</p>
-                            <h2 class="text-xl font-bold text-blue-600 tracking-tight">฿{{totalNet.toLocaleString(undefined, {minimumFractionDigits: 2})}}</h2>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">รายได้สุทธิ</p>
+                            <h2 class="text-lg font-bold text-blue-600 italic">฿{{totalNet.toLocaleString()}}</h2>
                         </div>
-                        <div class="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">รายจ่ายรวม</p>
-                            <h2 class="text-xl font-bold text-rose-500 tracking-tight">฿{{totalExpense.toLocaleString(undefined, {minimumFractionDigits: 2})}}</h2>
-                        </div>
-                        <div class="col-span-2 bg-slate-900 p-4 rounded-[1.5rem] flex justify-between items-center px-6 shadow-xl shadow-slate-200">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">กำไรคงเหลือ</span>
-                            <h2 class="text-lg font-bold text-emerald-400">฿{{(totalNet - totalExpense).toLocaleString(undefined, {minimumFractionDigits: 2})}}</h2>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">รายจ่ายรวม</p>
+                            <h2 class="text-lg font-bold text-rose-500 italic">฿{{totalExpense.toLocaleString()}}</h2>
                         </div>
                     </div>
 
-                    <div class="glass p-5 rounded-[1.5rem] shadow-sm">
-                        <div class="flex justify-between items-center mb-4 px-1">
-                            <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Analytics Visualization</h4>
-                            <span class="text-[10px] text-slate-300 italic">Doughnut Chart</span>
+                    <div class="glass p-6 rounded-[2rem] shadow-sm flex flex-col items-center">
+                        <div class="w-full flex justify-between mb-4">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Cashflow Chart</span>
+                            <span class="text-[10px] font-bold text-emerald-500">กำไร ฿{{(totalNet - totalExpense).toLocaleString()}}</span>
                         </div>
-                        <canvas id="mainChart" height="180"></canvas>
+                        <div class="relative w-full h-[180px]">
+                            <canvas id="mainChart"></canvas>
+                        </div>
                     </div>
 
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-end px-2">
-                            <h3 class="font-bold text-slate-700 text-sm">ประวัติรายรับ</h3>
-                            <span class="text-[10px] text-slate-400 font-medium">{{bills.length}} รายการ</span>
-                        </div>
-                        <div v-for="(item, idx) in bills" class="bg-white/60 p-4 rounded-2xl flex justify-between items-center border border-slate-100 hover:bg-white transition-all">
-                            <div class="flex items-center gap-3">
-                                <div class="text-[11px] font-bold text-slate-400 bg-slate-100 w-8 h-8 flex items-center justify-center rounded-lg">{{item.count}}</div>
-                                <div>
-                                    <p class="text-[12px] font-semibold text-slate-600">{{item.date}}</p>
-                                    <p class="text-[9px] text-slate-400 uppercase tracking-tighter">Verified Revenue</p>
-                                </div>
+                    <div class="space-y-2">
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase px-2 mb-2">History Log</h3>
+                        <div v-for="(item, idx) in bills" class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-50 transition-all hover:border-blue-200">
+                            <div>
+                                <p class="text-[12px] font-bold text-slate-700">{{item.date}}</p>
+                                <p class="text-[9px] text-slate-400">{{item.count}} บิล</p>
                             </div>
                             <div class="flex items-center gap-4">
-                                <span class="text-sm font-bold text-slate-700">฿{{(item.count * settings.pricePerBill * (1 - settings.taxRate/100)).toFixed(2)}}</span>
+                                <span class="text-sm font-bold text-slate-800">฿{{(item.count * settings.pricePerBill * (1 - settings.taxRate/100)).toFixed(2)}}</span>
                                 <div class="flex gap-1">
-                                    <button @click="editBill(idx)" class="w-7 h-7 rounded-md text-slate-300 hover:text-blue-500 hover:bg-blue-50 flex items-center justify-center transition-all"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                                    <button @click="deleteItem('bills', idx)" class="w-7 h-7 rounded-md text-slate-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                    <button @click="editBill(idx)" class="text-slate-300 hover:text-blue-500 p-1"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
+                                    <button @click="deleteItem('bills', idx)" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
                                 </div>
                             </div>
                         </div>
-                        <div v-if="bills.length === 0" class="text-center py-8 text-slate-300 text-xs italic">ยังไม่มีข้อมูลบันทึก</div>
                     </div>
                 </section>
 
-                <section v-if="currentTab === 'settings'" class="space-y-5">
-                    <div class="glass p-7 rounded-[2rem] border-white">
-                        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2"><i class="fa-solid fa-sliders text-blue-500"></i> Configuration</h3>
-                        <div class="grid grid-cols-2 gap-5">
+                <section v-if="currentTab === 'settings'" class="space-y-6">
+                    <div class="glass p-7 rounded-[2rem] shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-700 mb-6 uppercase tracking-widest"><i class="fa-solid fa-sliders text-blue-500 mr-2"></i> System Setting</h3>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1.5 ml-1">ค่ารอบต่อบิล</label>
-                                <input type="number" v-model="settings.pricePerBill" class="w-full p-3 bg-slate-50 rounded-xl outline-none font-semibold text-sm">
+                                <label class="text-[10px] font-bold text-slate-400 mb-1 block">ค่ารอบบิลละ</label>
+                                <input type="number" v-model="settings.pricePerBill" class="w-full p-2.5 bg-slate-50 rounded-lg outline-none text-sm font-bold">
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1.5 ml-1">ภาษีหักจ่าย (%)</label>
-                                <input type="number" v-model="settings.taxRate" class="w-full p-3 bg-slate-50 rounded-xl outline-none font-semibold text-sm">
+                                <label class="text-[10px] font-bold text-slate-400 mb-1 block">ภาษี (%)</label>
+                                <input type="number" v-model="settings.taxRate" class="w-full p-2.5 bg-slate-50 rounded-lg outline-none text-sm font-bold">
                             </div>
                         </div>
-                        <button @click="notify('อัปเดตการตั้งค่าแล้ว', 'info')" class="w-full mt-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-[12px] active:scale-[0.98] transition-transform">บันทึกพื้นฐาน</button>
                     </div>
 
-                    <div class="glass p-7 rounded-[2rem]">
-                        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-emerald-500"></i> Payout Cycles</h3>
+                    <div class="glass p-7 rounded-[2rem] shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest"><i class="fa-solid fa-calendar-check text-emerald-500 mr-2"></i> Payout Cycles</h3>
                         <div class="space-y-2 mb-4">
-                            <div v-for="(p, idx) in settings.payoutCycles" class="flex justify-between items-center bg-white/80 p-3 px-4 rounded-xl border border-slate-100 shadow-sm text-[11px]">
-                                <span class="text-slate-500">{{p.start}} ถึง {{p.end}}</span>
+                            <div v-for="(p, idx) in settings.payoutCycles" class="flex justify-between items-center bg-white/80 p-3 rounded-xl border border-slate-100 text-[10px]">
+                                <span class="text-slate-500">{{p.start}} ~ {{p.end}}</span>
                                 <div class="flex items-center gap-3">
                                     <span class="text-emerald-600 font-bold">จ่าย: {{p.pay}}</span>
-                                    <button @click="settings.payoutCycles.splice(idx, 1); notify('ลบรอบวันจ่ายเงินแล้ว','error'); save()" class="text-rose-200 hover:text-rose-500"><i class="fa-solid fa-circle-xmark"></i></button>
+                                    <button @click="settings.payoutCycles.splice(idx, 1); save()" class="text-rose-300 hover:text-rose-500"><i class="fa-solid fa-circle-xmark"></i></button>
                                 </div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-3 gap-2 p-3 bg-slate-100/50 rounded-xl mb-3">
-                            <input type="date" v-model="payoutForm.start" class="bg-transparent text-[10px] outline-none">
-                            <input type="date" v-model="payoutForm.end" class="bg-transparent text-[10px] outline-none">
-                            <input type="date" v-model="payoutForm.pay" class="bg-transparent text-[10px] outline-none">
+                        <div class="grid grid-cols-3 gap-2 p-3 bg-slate-100 rounded-xl mb-3">
+                            <input type="date" v-model="payoutForm.start" class="bg-transparent text-[9px] outline-none">
+                            <input type="date" v-model="payoutForm.end" class="bg-transparent text-[9px] outline-none">
+                            <input type="date" v-model="payoutForm.pay" class="bg-transparent text-[9px] outline-none">
                         </div>
-                        <button @click="addPayout" class="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold text-[12px]">เพิ่มรอบการจ่าย</button>
+                        <button @click="addPayout" class="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold text-xs">เพิ่มรอบการจ่าย</button>
                     </div>
                 </section>
 
@@ -196,7 +187,7 @@
 </div>
 
 <script>
-const { createApp } = Vue
+const { createApp, nextTick } = Vue
 createApp({
     data() {
         return {
@@ -219,6 +210,16 @@ createApp({
         },
         totalExpense() { 
             return this.expenses.reduce((s, i) => s + (i.amount || 0), 0);
+        },
+        calculatedCycles() {
+            if (!this.settings.payoutCycles.length) return [];
+            return this.settings.payoutCycles.map(cycle => {
+                const totalBill = this.bills
+                    .filter(b => b.date >= cycle.start && b.date <= cycle.end)
+                    .reduce((sum, b) => sum + b.count, 0);
+                const totalAmount = totalBill * this.settings.pricePerBill * (1 - this.settings.taxRate/100);
+                return { ...cycle, totalBill, totalAmount };
+            }).sort((a,b) => new Date(a.pay) - new Date(b.pay));
         }
     },
     methods: {
@@ -227,21 +228,24 @@ createApp({
             let icon = 'fa-solid fa-circle-check';
             if(type === 'error') icon = 'fa-solid fa-circle-xmark';
             if(type === 'info') icon = 'fa-solid fa-circle-info';
-
             this.notifications.push({ id, text, type, icon });
-            setTimeout(() => {
-                this.notifications = this.notifications.filter(n => n.id !== id);
-            }, 3000);
+            setTimeout(() => { this.notifications = this.notifications.filter(n => n.id !== id); }, 3000);
+        },
+        formatDateRange(s, e) {
+            const options = { month: 'short', day: 'numeric' };
+            const start = new Date(s).toLocaleDateString('th-TH', options);
+            const end = new Date(e).toLocaleDateString('th-TH', options);
+            return `${start} - ${end}`;
         },
         saveBill() {
-            if(!this.billForm.count) { this.notify('ระบุจำนวนบิลด้วยครับ', 'error'); return; }
+            if(!this.billForm.count) return this.notify('ระบุจำนวนบิล', 'error');
             if(this.isEditing) {
                 this.bills[this.editIndex] = {...this.billForm};
                 this.isEditing = false;
                 this.notify('อัปเดตข้อมูลสำเร็จ', 'info');
             } else {
                 this.bills.unshift({...this.billForm});
-                this.notify('บันทึกค่ารอบแล้วครับ');
+                this.notify('บันทึกค่ารอบแล้ว');
             }
             this.billForm.count = null;
             this.save();
@@ -253,23 +257,19 @@ createApp({
             this.currentTab = 'record';
             this.subTab = 'bill';
         },
-        cancelEdit() {
-            this.isEditing = false;
-            this.billForm.count = null;
-            this.notify('ยกเลิกแก้ไข', 'info');
-        },
+        cancelEdit() { this.isEditing = false; this.billForm.count = null; },
         saveExpense() {
-            if(!this.expenseForm.amount) { this.notify('ระบุจำนวนเงินด้วยครับ', 'error'); return; }
+            if(!this.expenseForm.amount) return this.notify('ระบุจำนวนเงิน', 'error');
             this.expenses.unshift({...this.expenseForm});
             this.expenseForm.amount = null;
-            this.notify('บันทึกรายจ่ายเรียบร้อย');
+            this.notify('บันทึกรายจ่ายแล้ว');
             this.save();
         },
         addPayout() {
             if(!this.payoutForm.start || !this.payoutForm.pay) return;
             this.settings.payoutCycles.push({...this.payoutForm});
             this.payoutForm = { start: '', end: '', pay: '' };
-            this.notify('เพิ่มรอบจ่ายเงินแล้ว');
+            this.notify('เพิ่มรอบการจ่ายเงินแล้ว');
             this.save();
         },
         deleteItem(type, idx) {
@@ -280,58 +280,56 @@ createApp({
             }
         },
         save() {
-            localStorage.setItem('rider_v4_2_final', JSON.stringify({
+            localStorage.setItem('rider_v4_3', JSON.stringify({
                 bills: this.bills,
                 expenses: this.expenses,
                 settings: this.settings
             }));
-            if(this.currentTab === 'summary') setTimeout(this.renderChart, 100);
+            if(this.currentTab === 'summary') this.renderChart();
         },
         renderChart() {
-            const ctx = document.getElementById('mainChart');
-            if(!ctx) return;
-            if(window.chartObj) window.chartObj.destroy();
-            window.chartObj = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['รายได้สุทธิ', 'รายจ่ายรวม'],
-                    datasets: [{
-                        data: [this.totalNet, this.totalExpense],
-                        backgroundColor: ['#2563eb', '#f43f5e'],
-                        borderWidth: 8,
-                        borderColor: '#ffffff',
-                        hoverOffset: 0
-                    }]
-                },
-                options: { 
-                    cutout: '82%', 
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom', 
-                            labels: { 
-                                usePointStyle: true, 
-                                font: { size: 10, family: 'Kanit' },
-                                padding: 20
+            nextTick(() => {
+                const ctx = document.getElementById('mainChart');
+                if(!ctx) return;
+                if(window.chartObj) window.chartObj.destroy();
+                window.chartObj = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['รายได้สุทธิ', 'รายจ่ายรวม'],
+                        datasets: [{
+                            data: [this.totalNet, this.totalExpense],
+                            backgroundColor: ['#2563eb', '#f43f5e'],
+                            borderWidth: 5,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: { 
+                        cutout: '80%', 
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { 
+                                position: 'bottom',
+                                labels: { boxWidth: 10, font: { size: 10, family: 'Kanit' } }
                             } 
                         } 
-                    } 
-                }
+                    }
+                });
             });
         }
     },
     watch: {
-        currentTab(v) { if(v === 'summary') setTimeout(this.renderChart, 100); }
+        currentTab(v) { if(v === 'summary') this.renderChart(); }
     },
     mounted() {
-        const data = JSON.parse(localStorage.getItem('rider_v4_2_final'));
+        const data = JSON.parse(localStorage.getItem('rider_v4_3'));
         if(data) {
             this.bills = data.bills || [];
             this.expenses = data.expenses || [];
             this.settings = data.settings || this.settings;
         }
+        if(this.currentTab === 'summary') this.renderChart();
     }
 }).mount('#app')
 </script>
 </body>
 </html>
-
