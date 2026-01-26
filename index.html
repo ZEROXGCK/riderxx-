@@ -142,6 +142,7 @@ createApp({
     data() {
         return {
             currentTab: 'record', subTab: 'bill', isEditing: false, editIndex: null,
+            // ตั้งค่าเริ่มต้นเผื่อกรณีข้อมูลเดิมพัง
             settings: { taxRate: 3, payoutRules: [] },
             viewDate: new Date(),
             billForm: { date: new Date().toISOString().substr(0, 10), count: null, price: 15 },
@@ -156,22 +157,31 @@ createApp({
         filteredBills() {
             const m = this.viewDate.getMonth(), y = this.viewDate.getFullYear();
             return this.bills.map((b, i) => ({ ...b, originalIndex: i }))
-                .filter(b => { const d = new Date(b.date); return d.getMonth() === m && d.getFullYear() === y; });
+                .filter(b => { 
+                    const d = new Date(b.date); 
+                    return d.getMonth() === m && d.getFullYear() === y; 
+                });
         },
         monthlyStats() {
             const b = this.filteredBills.reduce((s, i) => s + i.count, 0);
-            const n = this.filteredBills.reduce((s, i) => s + (i.count * (i.price || 15) * (1 - this.settings.taxRate/100)), 0);
+            const n = this.filteredBills.reduce((s, i) => s + (i.count * (i.price || 15) * (1 - (this.settings.taxRate || 3)/100)), 0);
             return { totalBills: b, totalNet: n };
         },
         calculatedCycles() {
             const m = this.viewDate.getMonth() + 1, y = this.viewDate.getFullYear();
-            return (this.settings.payoutRules || []).map(r => {
+            // ป้องกัน Error ถ้า payoutRules ไม่มีค่า
+            const rules = this.settings.payoutRules || [];
+            return rules.map(r => {
                 const s = `${y}-${String(m).padStart(2,'0')}-${String(r.startDay).padStart(2,'0')}`;
                 const e = `${y}-${String(m).padStart(2,'0')}-${String(r.endDay).padStart(2,'0')}`;
                 const cB = this.bills.filter(b => b.date >= s && b.date <= e);
-                return { ...r, totalBill: cB.reduce((s, b) => s + b.count, 0), 
-                         totalAmount: cB.reduce((s, b) => s + (b.count * (b.price || 15) * 0.97), 0),
-                         payDate: `${r.payDay} ${this.viewMonthShort}` };
+                const tax = 1 - (this.settings.taxRate || 3) / 100;
+                return { 
+                    ...r, 
+                    totalBill: cB.reduce((sum, b) => sum + b.count, 0), 
+                    totalAmount: cB.reduce((sum, b) => sum + (b.count * (b.price || 15) * tax), 0),
+                    payDate: `${r.payDay} ${this.viewMonthShort}` 
+                };
             }).sort((a,b) => a.startDay - b.startDay);
         }
     },
@@ -186,17 +196,32 @@ createApp({
         editBill(i) { this.editIndex = i; this.billForm = {...this.bills[i]}; this.isEditing = true; },
         cancelEdit() { this.isEditing = false; },
         saveExpense() { if(!this.expenseForm.amount) return; this.expenses.unshift({...this.expenseForm}); this.expenseForm.amount = null; this.save(); },
-        addPayoutRule() { this.settings.payoutRules.push({...this.payoutForm}); this.save(); },
+        addPayoutRule() {
+            // ตรวจสอบความสมบูรณ์ของโครงสร้างก่อนเพิ่ม
+            if(!this.settings.payoutRules) this.settings.payoutRules = [];
+            this.settings.payoutRules.push({...this.payoutForm});
+            this.save();
+        },
         deleteItem(t, i) { if(confirm('ลบรายการนี้?')) { this[t].splice(i, 1); this.save(); } },
         save() {
-            localStorage.setItem('rider_v4_4_billing', JSON.stringify({ bills: this.bills, expenses: this.expenses, settings: this.settings }));
+            localStorage.setItem('rider_v4_4_billing', JSON.stringify({ 
+                bills: this.bills, 
+                expenses: this.expenses, 
+                settings: this.settings 
+            }));
             if(this.currentTab === 'summary') this.renderChart();
         },
         renderChart() {
             nextTick(() => {
                 const ctx = document.getElementById('mainChart'); if(!ctx) return;
                 if(window.chartObj) window.chartObj.destroy();
-                window.chartObj = new Chart(ctx, { type: 'doughnut', data: { labels: ['รายได้', 'รายจ่าย'], datasets: [{ data: [this.monthlyStats.totalNet, 100], backgroundColor: ['#2563eb', '#f43f5e'] }] } });
+                window.chartObj = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: ['รายได้', 'รายจ่าย'], 
+                        datasets: [{ data: [this.monthlyStats.totalNet, 100], backgroundColor: ['#2563eb', '#f43f5e'] }] 
+                    } 
+                });
             });
         }
     },
@@ -205,7 +230,9 @@ createApp({
         if(d) { 
             this.bills = d.bills || []; 
             this.expenses = d.expenses || []; 
-            this.settings = d.settings || { taxRate: 3, payoutRules: [] }; 
+            this.settings = d.settings || { taxRate: 3, payoutRules: [] };
+            // ถ้าดึงข้อมูลมาแล้วแต่ไม่มี payoutRules ให้สร้าง Array เปล่ารอไว้
+            if(!this.settings.payoutRules) this.settings.payoutRules = [];
         }
     }
 }).mount('#app')
