@@ -72,8 +72,8 @@
                     <input type="date" v-model="billForm.date" class="p-3 bg-slate-100 rounded-xl text-xs outline-none">
                     <input type="number" v-model.number="billForm.count" placeholder="บิล" class="p-3 bg-slate-100 rounded-xl text-lg font-bold outline-none">
                 </div>
-                <button @click="saveBill" class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold shadow-lg shadow-slate-200 active:scale-95 transition-all">บันทึกรายการ</button>
-       </div>
+                <button @click="saveBill" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">บันทึกรายการ</button>
+            </div>
             <div v-else class="space-y-4">
                 <input type="date" v-model="expenseForm.date" class="w-full p-3 bg-slate-100 rounded-xl text-xs outline-none"><input type="number" v-model.number="expenseForm.amount" placeholder="บาท" class="w-full p-3 bg-slate-100 rounded-xl text-lg font-bold outline-none">
                 <button @click="saveExpense" class="w-full py-4 bg-rose-500 text-white rounded-2xl font-bold">บันทึกรายจ่าย</button>
@@ -195,22 +195,14 @@ createApp({
         },
         editBill(i) { this.editIndex = i; this.billForm = {...this.bills[i]}; this.isEditing = true; },
         cancelEdit() { this.isEditing = false; },
-        saveExpense() {
-            if(!this.expenseForm.amount) return;
-            this.expenses.unshift({...this.expenseForm});
-            this.expenseForm.amount = null; this.save();
-            this.toast('บันทึกรายจ่ายแล้ว', 'warning');
-        },
+        saveExpense() { if(!this.expenseForm.amount) return; this.expenses.unshift({...this.expenseForm}); this.expenseForm.amount = null; this.save(); },
         addPayoutRule() {
             // ตรวจสอบความสมบูรณ์ของโครงสร้างก่อนเพิ่ม
             if(!this.settings.payoutRules) this.settings.payoutRules = [];
             this.settings.payoutRules.push({...this.payoutForm});
             this.save();
         },
-        deleteItem(t, i) {
-            const res = await Swal.fire({ title: 'ลบรายการนี้?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบเลย', cancelButtonText: 'ยกเลิก' });
-            if(res.isConfirmed) { this[t].splice(i, 1); this.save(); this.toast('ลบออกแล้ว', 'info'); }
-        },
+        deleteItem(t, i) { if(confirm('ลบรายการนี้?')) { this[t].splice(i, 1); this.save(); } },
         save() {
             localStorage.setItem('rider_v4_4_billing', JSON.stringify({ 
                 bills: this.bills, 
