@@ -72,8 +72,8 @@
                     <input type="date" v-model="billForm.date" class="p-3 bg-slate-100 rounded-xl text-xs outline-none">
                     <input type="number" v-model.number="billForm.count" placeholder="บิล" class="p-3 bg-slate-100 rounded-xl text-lg font-bold outline-none">
                 </div>
-                <button @click="saveBill" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg">บันทึกรายการ</button>
-            </div>
+                <button @click="saveBill" class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold shadow-lg shadow-slate-200 active:scale-95 transition-all">บันทึกรายการ</button>
+       </div>
             <div v-else class="space-y-4">
                 <input type="date" v-model="expenseForm.date" class="w-full p-3 bg-slate-100 rounded-xl text-xs outline-none"><input type="number" v-model.number="expenseForm.amount" placeholder="บาท" class="w-full p-3 bg-slate-100 rounded-xl text-lg font-bold outline-none">
                 <button @click="saveExpense" class="w-full py-4 bg-rose-500 text-white rounded-2xl font-bold">บันทึกรายจ่าย</button>
@@ -207,7 +207,7 @@ createApp({
             this.settings.payoutRules.push({...this.payoutForm});
             this.save();
         },
-        async deleteItem(t, i) {
+        deleteItem(t, i) {
             const res = await Swal.fire({ title: 'ลบรายการนี้?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบเลย', cancelButtonText: 'ยกเลิก' });
             if(res.isConfirmed) { this[t].splice(i, 1); this.save(); this.toast('ลบออกแล้ว', 'info'); }
         },
