@@ -234,10 +234,6 @@ createApp({
             // ถ้าดึงข้อมูลมาแล้วแต่ไม่มี payoutRules ให้สร้าง Array เปล่ารอไว้
             if(!this.settings.payoutRules) this.settings.payoutRules = [];
         }
-    mounted() {
-        const d = JSON.parse(localStorage.getItem('rider_v4_8_data'));
-        if(d) { this.bills = d.bills || []; this.expenses = d.expenses || []; }
-    }
 }).mount('#app')
 </script>
 </body>
