@@ -195,14 +195,22 @@ createApp({
         },
         editBill(i) { this.editIndex = i; this.billForm = {...this.bills[i]}; this.isEditing = true; },
         cancelEdit() { this.isEditing = false; },
-        saveExpense() { if(!this.expenseForm.amount) return; this.expenses.unshift({...this.expenseForm}); this.expenseForm.amount = null; this.save(); },
+        saveExpense() {
+            if(!this.expenseForm.amount) return;
+            this.expenses.unshift({...this.expenseForm});
+            this.expenseForm.amount = null; this.save();
+            this.toast('บันทึกรายจ่ายแล้ว', 'warning');
+        },
         addPayoutRule() {
             // ตรวจสอบความสมบูรณ์ของโครงสร้างก่อนเพิ่ม
             if(!this.settings.payoutRules) this.settings.payoutRules = [];
             this.settings.payoutRules.push({...this.payoutForm});
             this.save();
         },
-        deleteItem(t, i) { if(confirm('ลบรายการนี้?')) { this[t].splice(i, 1); this.save(); } },
+        async deleteItem(t, i) {
+            const res = await Swal.fire({ title: 'ลบรายการนี้?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบเลย', cancelButtonText: 'ยกเลิก' });
+            if(res.isConfirmed) { this[t].splice(i, 1); this.save(); this.toast('ลบออกแล้ว', 'info'); }
+        },
         save() {
             localStorage.setItem('rider_v4_4_billing', JSON.stringify({ 
                 bills: this.bills, 
