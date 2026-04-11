@@ -175,11 +175,11 @@ createApp({
                 const s = `${y}-${String(m).padStart(2,'0')}-${String(r.startDay).padStart(2,'0')}`;
                 const e = `${y}-${String(m).padStart(2,'0')}-${String(r.endDay).padStart(2,'0')}`;
                 const cB = this.bills.filter(b => b.date >= s && b.date <= e);
-                const tax = 1 - (this.settings.taxRate || 1) / 100;
+                const tax = 1 - (this.settings.taxRate || 3) / 100;
                 return { 
                     ...r, 
                     totalBill: cB.reduce((sum, b) => sum + b.count, 0), 
-                    totalAmount: cB.reduce((sum, b) => sum + (b.count * (b.price || 15) * tax), 0),
+                    totalAmount: cB.reduce((sum, b) => sum + (b.count * (b.price || 15), 0),
                     payDate: `${r.payDay} ${this.viewMonthShort}` 
                 };
             }).sort((a,b) => a.startDay - b.startDay);
