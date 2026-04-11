@@ -175,7 +175,7 @@ createApp({
                 const s = `${y}-${String(m).padStart(2,'0')}-${String(r.startDay).padStart(2,'0')}`;
                 const e = `${y}-${String(m).padStart(2,'0')}-${String(r.endDay).padStart(2,'0')}`;
                 const cB = this.bills.filter(b => b.date >= s && b.date <= e);
-                const tax = 0 - (this.settings.taxRate || 0) / 100;
+                const tax = 0 - (this.settings.taxRate || 3) / 100;
                 return { 
                     ...r, 
                     totalBill: cB.reduce((sum, b) => sum + b.count, 0), 
